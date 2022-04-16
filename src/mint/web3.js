@@ -55,7 +55,7 @@ const getMintPrice = async (tier) => {
             return undefined
         default:
             console.log("Using hardcoded price detection")
-            const methodNameVariants = ['price', 'cost', 'public_sale_price', 'getPrice']
+            const methodNameVariants = ['price', 'cost', 'public_sale_price', 'getPrice', 'mintCost']
             const name = methodNameVariants.find(n => findMethodByName(n) !== undefined)
             if (!name) {
                 alert("Buildship widget doesn't know how to fetch price from your contract. Contact https://buildship.xyz in Discord to resolve this.")
