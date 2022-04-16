@@ -22,7 +22,7 @@ export const initContract = async (contract, shouldSwitchNetwork=true) => {
 
 const initContractGlobalObject = async () => {
     if (window.CONTRACT_ADDRESS === "<your contract address here>") {
-        alert("You forgot to insert your NFT contract address in your Webflow Embed code. Insert your contract address, publish the website and try again. If you don't have it, contact https://buildship.dev")
+        alert("You forgot to insert your NFT contract address in your Webflow Embed code. Insert your contract address, publish the website and try again. If you don't have it, contact https://buildship.xyz")
         return
     }
     // Default to Ethereum
@@ -48,37 +48,41 @@ export const fetchABI = async (address, chainID) => {
     const abi = await fetch(`https://metadata.buildship.dev/api/info/${address}?network_id=${chainID}`)
         .then(r => r.json())
         .then(r => r.abi)
+        .catch(e => null)
+
     if (!abi) {
         console.log("No ABI returned from https://metadata.buildship.dev")
         const savedMainABI = getSavedMainABI(address)
         if (!savedMainABI) {
             alert(`Error: no ABI loaded for ${address}. Please contact support`)
         }
+        return savedMainABI;
     }
     return abi;
 }
 
 const fetchCachedABI = async (address) => {
-    if (window.DEFAULTS?.abiCacheURL) {
-        console.log("Trying to load ABI from cache URL", address)
-        try {
-            return await fetch(window.DEFAULTS?.abiCacheURL)
-                .then(r => r.json())
-                .then(r => Object.keys(r).reduce((acc, key) => {
-                    acc[key.toLowerCase()] = r[key]
-                    return acc
-                }, {}))
-                .then(r => r[address.toLowerCase()])
-        } catch (e) {
-            alert("Wrong format for ABI cache. Should be a URL to .json file. Fix or remove ABI cache URL to resolve")
-            console.log("Wrong format for ABI cache", e)
-        }
+    if (!window.DEFAULTS?.abiCacheURL) {
+        return null
     }
-    return undefined
+
+    console.log("Trying to load ABI from cache URL", address)
+    try {
+        return await fetch(window.DEFAULTS?.abiCacheURL)
+            .then(r => r.json())
+            .then(r => Object.keys(r).reduce((acc, key) => {
+                acc[key.toLowerCase()] = r[key]
+                return acc
+            }, {}))
+            .then(r => r[address.toLowerCase()])
+    } catch (e) {
+        alert("Wrong format for ABI cache. Should be a URL to .json file. Fix or remove ABI cache URL to resolve")
+        console.log("Wrong format for ABI cache", e)
+    }
 }
 
 const getSavedMainABI = (address) => {
-    if (address.toLowerCase() === window.CONTRACT_ADDRESS?.toLowerCase()) {
+    if (address?.toLowerCase() === window.CONTRACT_ADDRESS?.toLowerCase()) {
         console.log("Trying to load saved main contract ABI")
         return typeof window.CONTRACT_ABI === 'string'
             ? JSON.parse(window.CONTRACT_ABI)
